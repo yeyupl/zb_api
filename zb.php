@@ -40,4 +40,6 @@ function dump($val) {
 
 $zbApi = new ZB\zbApi();
 
-dump($zbApi->markets());
+//dump($zbApi->markets());
+
+dump($zbApi->ticker('btc_usdt'));

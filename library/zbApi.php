@@ -39,7 +39,8 @@ class zbApi {
      * @return array|mixed|stdClass|string
      */
     public function hqRequest($method, $params = []) {
-        return $this->http->get($this->hqUrl . $method, $params, true);
+        $url = $this->hqUrl . $method . '?' . http_build_query($params);
+        return $this->http->get($url, [], true);
     }
 
     /**
@@ -52,7 +53,8 @@ class zbApi {
         $params['accesskey'] = $this->accessKey;
         $params['method'] = $method;
         $params = $this->createSign($params);
-        return $this->http->get($this->tradeUrl . $method, $params, true);
+        $url = $this->hqUrl . $method . '?' . http_build_query($params);
+        return $this->http->get($url, [], true);
     }
 
     /**
