@@ -53,7 +53,7 @@ class zbApi {
         $params['accesskey'] = $this->accessKey;
         $params['method'] = $method;
         $params = $this->createSign($params);
-        $url = $this->hqUrl . $method . '?' . http_build_query($params);
+        $url = $this->tradeUrl . $method . '?' . $params;
         return $this->http->get($url, [], true);
     }
 
@@ -82,7 +82,7 @@ class zbApi {
      * @param int $size
      * @return array|mixed|stdClass|string
      */
-    public function depth($market = 'btc_usdt', $size = 3) {
+    public function depth($market = 'btc_usdt', $size = 20) {
         return $this->hqRequest('depth', ['market' => $market, 'size' => $size]);
     }
 

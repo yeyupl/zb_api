@@ -42,4 +42,8 @@ $zbApi = new ZB\zbApi();
 
 //dump($zbApi->markets());
 
-dump($zbApi->ticker('btc_usdt'));
+//dump($zbApi->ticker('bts_qc'));
+
+//dump($zbApi->depth('bts_qc'));
+
+dump($zbApi->getAccountInfo());
