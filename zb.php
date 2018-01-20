@@ -46,4 +46,6 @@ $zbApi = new ZB\zbApi();
 
 //dump($zbApi->depth('bts_qc'));
 
-dump($zbApi->getAccountInfo());
+//dump($zbApi->getAccountInfo());
+
+dump($zbApi->getAvailableAmount('qc'));

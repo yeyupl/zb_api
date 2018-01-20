@@ -185,5 +185,23 @@ class zbApi {
         return $this->tradeRequest('getAccountInfo');
     }
 
+
+    /**
+     * 获取币可用余额
+     * @param $coin
+     * @return int
+     */
+    public function getAvailableAmount($coin) {
+        $coin = strtoupper($coin);
+        if ($result = $this->getAccountInfo()) {
+            foreach ($result['result']['coins'] as $v) {
+                if ($v['enName'] == $coin) {
+                    return $v['available'];
+                }
+            }
+        }
+        return 0;
+    }
+
 }
 
