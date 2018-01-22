@@ -105,7 +105,7 @@ while (true) {
             $bid = max(0, 4 - $cancelBuyTimes);
         }
         $buyPrice = max(round($price * 0.99, 3), $depth['bids'][$bid][0] + 0.0001);
-        $buyAmount = floor(min($standardAmount, $standardMaxAmount) / $buyPrice);
+        $buyAmount = floor($standardAmount / $buyPrice);
 
         $result = $zbApi->order($currency, $buyPrice, $buyAmount, 1);
         if ($result['code'] == 1000) {
@@ -129,7 +129,7 @@ while (true) {
         }
 
         $sellPrice = min(round($price * 1.01, 3), $depth['asks'][$ask][0] - 0.0001);
-        $sellAmount = min($targetAmount, $targetMaxAmount);
+        $sellAmount = $targetAmount;
 
         $result = $zbApi->order($currency, $sellPrice, $sellAmount, 0);
         if ($result['code'] == 1000) {
