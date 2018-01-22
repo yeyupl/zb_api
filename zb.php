@@ -10,8 +10,8 @@ require_once __DIR__ . '/function.php';
 
 date_default_timezone_set('PRC');
 
-$accessKey = 'ff1e221e-d009-4b60-b39d-e87087d0600a';
-$secretKey = '19b23368-3594-494b-be1c-7fabd7db8502';
+$accessKey = '***';
+$secretKey = '***';
 
 $zbApi = new ZB\ZBApi($accessKey, $secretKey);
 
@@ -24,7 +24,7 @@ $targetCurrency = 'bts';  //目标币
 $sleepTime = 10; //每次循环秒数
 
 $times = 0; //空操作次数
-$maxTimes = 180;  //最大空操作次数
+$maxTimes = 18;  //最大空操作次数
 $cancelBuyTimes = 0;  //买单撤单次数
 $cancelSellTimes = 0; //卖单撤单次数
 
