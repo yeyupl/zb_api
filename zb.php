@@ -89,18 +89,22 @@ while (true) {
             //查询委托单
             $orders = $zbApi->getOrders($currency);
             if (!isset($orders['code'])) {
+                $cancelOrder = 0;
                 foreach ($orders as $order) {
-                    //取消订单
-                    $zbApi->cancelOrder($currency, $order['id']);
+                    //取消订单  0未成交 3部分成交
+                    if (in_array($order['status'], [0, 3])) {
+                        $zbApi->cancelOrder($currency, $order['id']);
+                        $cancelOrder++;
+                    }
                 }
                 $times = 0;
-                showLog('超时撤单：' . count($orders));
+                showLog('超时撤单：' . $cancelOrder);
             } else {
                 showLog('没有委单');
             }
         } else {
             $times++;
-            showLog('无操作');
+            //showLog('无操作');
         }
         sleep($sleepTime);
         continue;
@@ -110,8 +114,8 @@ while (true) {
     $depth = $zbApi->depth($currency);
 
     if ($standardAmount > $orderMaxAmount && $buyOrder < $maxOrder) {
-        // 如果还有QC 挂买单 现价折价1% 或者第10档加0.001 取最大的
-        $buyPrice = max(round($price * 0.99, 3), $depth['bids'][9][0] + 0.001);
+        // 如果还有QC 挂买单 现价折价1% 或者第5档加0.001 取最大的
+        $buyPrice = max(round($price * 0.99, 3), $depth['bids'][4][0] + 0.001);
         $buyAmount = floor($orderMaxAmount / $buyPrice);
 
         $result = $zbApi->order($currency, $buyPrice, $buyAmount, 1);
@@ -123,11 +127,11 @@ while (true) {
         }
     }
     if ($targetAmount > $targetMaxAmount && $sellOrder < $maxOrder) {
-        // 如果还有bts 挂卖单 现价溢价1% 或者 第15档减少0.001 取最小
-        $sellPrice = min(round($price * 1.01, 3), $depth['asks'][15][0] - 0.001);
+        // 如果还有bts 挂卖单 现价溢价1% 或者 第5档减少0.001 取最小
+        $sellPrice = min(round($price * 1.01, 3), $depth['asks'][4][0] - 0.001);
         $sellAmount = min($targetAmount, $targetMaxAmount);
 
-        $result = $zbApi->order($currency, $sellPrice, $sellAmount, 1);
+        $result = $zbApi->order($currency, $sellPrice, $sellAmount, 0);
         if ($result['code'] == 1000) {
             $sellOrder++;
             showLog('委卖：' . $sellPrice . '/' . $sellAmount);
