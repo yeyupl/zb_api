@@ -24,7 +24,7 @@ $targetCurrency = 'bts';  //目标币
 $sleepTime = 10; //每次循环秒杀
 
 $times = 0; //空操作次数
-$maxTimes = 30;  //最大空操作次数
+$maxTimes = 180;  //最大空操作次数
 $cancelBuyTimes = 0;  //买单撤单次数
 $cancelSellTimes = 0; //卖单撤单次数
 
@@ -82,7 +82,7 @@ while (true) {
             sleep(3);
         } else {
             $times++;
-            showLog('无操作');
+            //showLog('无操作');
             sleep($sleepTime);
         }
         continue;
