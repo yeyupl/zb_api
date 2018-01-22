@@ -8,10 +8,12 @@ require_once __DIR__ . '/vendor/autoload.php';
 
 require_once __DIR__ . '/function.php';
 
+date_default_timezone_set('PRC');
+
 $accessKey = '***';
 $secretKey = '***';
 
-$zbApi = new ZB\zbApi($accessKey,$secretKey);
+$zbApi = new ZB\zbApi($accessKey, $secretKey);
 
 
 $currency = 'bts_qc'; //交易对
@@ -19,10 +21,11 @@ $currency = 'bts_qc'; //交易对
 $standardCurrency = 'qc'; //基准币
 $targetCurrency = 'bts';  //目标币
 
-$sleepTime = 20; //30秒一次循环
+$sleepTime = 10; //每次循环秒杀
 
 $times = 0; //空操作次数
-$maxTimes = 15;  //最大空操作次数
+$maxTimes = 30;  //最大空操作次数
+$cancelBuyTimes = 0;  //买单撤单次数
 
 $orderMaxAmount = 1000; //每次下单金额
 
@@ -54,6 +57,9 @@ while (true) {
                     if (in_array($order['status'], [0, 3])) {
                         $zbApi->cancelOrder($currency, $order['id']);
                         $cancelOrder++;
+                        if ($order['type'] == 1) {
+                            $cancelBuyTimes++;
+                        }
                     }
                 }
                 $times = 0;
@@ -75,13 +81,17 @@ while (true) {
 
     if ($standardAmount > $orderMaxAmount && $buyOrder < $maxOrder) {
         // 如果还有qc 挂买单 现价折价1% 或者第5档加0.0001 取最大的
-        $buyPrice = max(round($price * 0.99, 3), $depth['bids'][4][0] + 0.0001);
+
+        //一直买不到 可能是单行情 为防止一直不成交 挂单档次加上撤单次数因子
+        $bid = max(0, 4 - $cancelBuyTimes);
+        $buyPrice = max(round($price * 0.99, 3), $depth['bids'][$bid][0] + 0.0001);
         $buyAmount = floor($orderMaxAmount / $buyPrice);
 
         $result = $zbApi->order($currency, $buyPrice, $buyAmount, 1);
         if ($result['code'] == 1000) {
             $buyOrder++;
             $times = 0;
+            $cancelBuyTimes = 0;
             showLog('委买：' . $buyPrice . '/' . $buyAmount);
         } else {
             dump('委买：' . $result['message'] . '(' . $buyPrice . '/' . $buyAmount . ')');
