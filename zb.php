@@ -28,7 +28,7 @@ $maxTimes = 18;  //最大空操作次数
 $cancelBuyTimes = 0;  //买单撤单次数
 $cancelSellTimes = 0; //卖单撤单次数
 
-$orderMaxAmount = 500; //每次下单金额
+$orderMaxAmount = 1000; //每次下单金额
 
 $maxOrder = 2; //最大挂单数
 $buyOrder = 0;  //委买次数
@@ -57,7 +57,7 @@ while (true) {
         // 超过指定次数 撤消委单 重新挂
         if ($times >= $maxTimes) {
             //查询委托单
-            $orders = $zbApi->getOrders($currency);
+            $orders = $zbApi->getUnfinishedOrdersIgnoreTradeType($currency);
             if (!isset($orders['code'])) {
                 $cancelOrder = 0;
                 foreach ($orders as $order) {
