@@ -21,7 +21,7 @@ $currency = 'bts_qc'; //交易对
 $standardCurrency = 'qc'; //基准币
 $targetCurrency = 'bts';  //目标币
 
-$sleepTime = 10; //每次循环秒杀
+$sleepTime = 10; //每次循环秒数
 
 $times = 0; //空操作次数
 $maxTimes = 180;  //最大空操作次数
@@ -31,13 +31,13 @@ $cancelSellTimes = 0; //卖单撤单次数
 $orderMaxAmount = 1000; //每次下单金额
 
 $maxOrder = 2; //最大挂单数
-$buyOrder = 0;  //委买单数
-$sellOrder = 0; //委卖单数
+$buyOrder = 0;  //委买次数
+$sellOrder = 0; //委卖次数
 
-$priceHistory = [];  //历史价格
+$priceHistory = [];  //一个周期内的历史价格
 
 while (true) {
-    //可用数额
+    //可用余额
     $standardAmount = $zbApi->getAvailableAmount($standardCurrency);
     $targetAmount = $zbApi->getAvailableAmount($targetCurrency);
 
@@ -95,11 +95,10 @@ while (true) {
         // 如果还有qc 挂买单 现价折价1% 或者第5档加0.0001 取最大的
 
         //一直买不到 可能是单边行情 为防止一直不成交 挂单档次加上撤单次数因子
-        if ($price >= $avgPrice) {
+        if ($price > $avgPrice) {
             //上涨行情 加速买入
             $bid = max(0, 3 - $cancelBuyTimes);
         } else {
-            //下跌
             $bid = max(0, 4 - $cancelBuyTimes);
         }
         $buyPrice = max(round($price * 0.99, 3), $depth['bids'][$bid][0] + 0.0001);
