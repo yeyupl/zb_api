@@ -24,6 +24,7 @@ class zbApi {
      * @return string
      */
     public function createSign($params = []) {
+        ksort($params);
         $preSign = http_build_query($params, '', '&');
         $sign = hash_hmac('md5', $preSign, sha1($this->secretKey));
         $params['sign'] = $sign;
@@ -31,12 +32,11 @@ class zbApi {
         return http_build_query($params, '', '&');
     }
 
-
     /**
      * 发起行情请求
      * @param $method
      * @param array $params
-     * @return array|mixed|stdClass|string
+     * @return array|mixed|string
      */
     public function hqRequest($method, $params = []) {
         $url = $this->hqUrl . $method . '?' . http_build_query($params);
@@ -47,7 +47,7 @@ class zbApi {
      * 发起交易请求
      * @param $method
      * @param array $params
-     * @return array|mixed|stdClass|string
+     * @return array|mixed|string
      */
     public function tradeRequest($method, $params = []) {
         $params['accesskey'] = $this->accessKey;
@@ -59,7 +59,7 @@ class zbApi {
 
     /**
      * 市场配置
-     * @return array|mixed|stdClass|string
+     * @return array|mixed|string
      */
     public function markets() {
         return $this->hqRequest('markets', []);
@@ -69,7 +69,7 @@ class zbApi {
     /**
      * 行情
      * @param string $market
-     * @return array|mixed|stdClass|string
+     * @return array|mixed|string
      */
     public function ticker($market = 'btc_usdt') {
         return $this->hqRequest('ticker', ['market' => $market]);
@@ -80,7 +80,7 @@ class zbApi {
      * 市场深度
      * @param string $market
      * @param int $size
-     * @return array|mixed|stdClass|string
+     * @return array|mixed|string
      */
     public function depth($market = 'btc_usdt', $size = 20) {
         return $this->hqRequest('depth', ['market' => $market, 'size' => $size]);
@@ -90,7 +90,7 @@ class zbApi {
     /**
      * 历史成交
      * @param string $market
-     * @return array|mixed|stdClass|string
+     * @return array|mixed|string
      */
     public function trades($market = 'btc_usdt') {
         return $this->hqRequest('trades', ['market' => $market]);
@@ -100,7 +100,7 @@ class zbApi {
     /**
      * K线
      * @param string $market
-     * @return array|mixed|stdClass|string
+     * @return array|mixed|string
      */
     public function kline($market = 'btc_usdt') {
         return $this->hqRequest('kline', ['market' => $market]);
@@ -113,7 +113,7 @@ class zbApi {
      * @param $price
      * @param $amount
      * @param int $tradeType
-     * @return array|mixed|stdClass|string
+     * @return array|mixed|string
      */
     public function order($currency, $price, $amount, $tradeType = 1) {
         return $this->tradeRequest('order', ['currency' => $currency, 'price' => $price, 'amount' => $amount, 'tradeType' => $tradeType]);
@@ -124,7 +124,7 @@ class zbApi {
      * 取消委托
      * @param $currency
      * @param $id
-     * @return array|mixed|stdClass|string
+     * @return array|mixed|string
      */
     public function cancelOrder($currency, $id) {
         return $this->tradeRequest('cancelOrder', ['currency' => $currency, 'id' => $id]);
@@ -146,7 +146,7 @@ class zbApi {
      * @param $currency
      * @param int $pageIndex
      * @param int $tradeType
-     * @return array|mixed|stdClass|string
+     * @return array|mixed|string
      */
     public function getOrders($currency, $pageIndex = 1, $tradeType = 1) {
         return $this->tradeRequest('getOrders', ['currency' => $currency, 'pageIndex' => $pageIndex, 'tradeType' => $tradeType]);
@@ -158,7 +158,7 @@ class zbApi {
      * @param int $pageIndex
      * @param int $pageSize
      * @param int $tradeType
-     * @return array|mixed|stdClass|string
+     * @return array|mixed|string
      */
     public function getOrdersNew($currency, $pageIndex = 1, $pageSize = 1, $tradeType = 1) {
         return $this->tradeRequest('getOrdersNew', ['currency' => $currency, 'pageIndex' => $pageIndex, 'pageSize' => $pageSize, 'tradeType' => $tradeType]);
@@ -170,7 +170,7 @@ class zbApi {
      * @param $currency
      * @param int $pageIndex
      * @param int $pageSize
-     * @return array|mixed|stdClass|string
+     * @return array|mixed|string
      */
     public function getUnfinishedOrdersIgnoreTradeType($currency, $pageIndex = 1, $pageSize = 10) {
         return $this->tradeRequest('getUnfinishedOrdersIgnoreTradeType', ['currency' => $currency, 'pageIndex' => $pageIndex, 'pageSize' => $pageSize]);
@@ -179,7 +179,7 @@ class zbApi {
 
     /**
      * 获取用户信息
-     * @return array|mixed|stdClass|string
+     * @return array|mixed|string
      */
     public function getAccountInfo() {
         return $this->tradeRequest('getAccountInfo');
