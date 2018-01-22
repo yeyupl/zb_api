@@ -97,7 +97,7 @@ while (true) {
         //一直买不到 可能是单边行情 为防止一直不成交 挂单档次加上撤单次数因子
         if ($price > $avgPrice) {
             //上涨行情 加速买入
-            $bid = max(0, 3 - $cancelBuyTimes);
+            $bid = max(0, 2 - $cancelBuyTimes);
         } else {
             $bid = max(0, 4 - $cancelBuyTimes);
         }
@@ -119,10 +119,10 @@ while (true) {
 
         //一直卖不出 可能是单边行情 为防止一直不成交 挂单档次加上撤单次数因子
         if ($price >= $avgPrice) {
-            $ask = max(0, 4 - $cancelSellTimes);
+            $ask = 0;
         } else {
             //下跌行情 加速卖出
-            $ask = max(0, 3 - $cancelSellTimes);
+            $ask = min(4, $cancelSellTimes);
         }
 
         $sellPrice = min(round($price * 1.01, 3), $depth['asks'][$ask][0] - 0.0001);

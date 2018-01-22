@@ -84,7 +84,7 @@ class ZBApi {
      * @param int $size
      * @return array|mixed|string
      */
-    public function depth($market = 'btc_usdt', $size = 20) {
+    public function depth($market = 'btc_usdt', $size = 5) {
         return $this->hqRequest('depth', ['market' => $market, 'size' => $size]);
     }
 
