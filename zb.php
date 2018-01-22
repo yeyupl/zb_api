@@ -114,26 +114,28 @@ while (true) {
     $depth = $zbApi->depth($currency);
 
     if ($standardAmount > $orderMaxAmount && $buyOrder < $maxOrder) {
-        // 如果还有QC 挂买单 现价折价1% 或者第5档加0.001 取最大的
-        $buyPrice = max(round($price * 0.99, 3), $depth['bids'][4][0] + 0.001);
+        // 如果还有QC 挂买单 现价折价1% 或者第5档加0.0001 取最大的
+        $buyPrice = max(round($price * 0.99, 3), $depth['bids'][4][0] + 0.0001);
         $buyAmount = floor($orderMaxAmount / $buyPrice);
 
         $result = $zbApi->order($currency, $buyPrice, $buyAmount, 1);
         if ($result['code'] == 1000) {
             $buyOrder++;
+            $times = 0;
             showLog('委买：' . $buyPrice . '/' . $buyAmount);
         } else {
             dump('委买：' . $result['message'] . '(' . $buyPrice . '/' . $buyAmount . ')');
         }
     }
     if ($targetAmount > $targetMaxAmount && $sellOrder < $maxOrder) {
-        // 如果还有bts 挂卖单 现价溢价1% 或者 第5档减少0.001 取最小
-        $sellPrice = min(round($price * 1.01, 3), $depth['asks'][4][0] - 0.001);
+        // 如果还有bts 挂卖单 现价溢价1% 或者 第5档减少0.0001 取最小
+        $sellPrice = min(round($price * 1.01, 3), $depth['asks'][4][0] - 0.0001);
         $sellAmount = min($targetAmount, $targetMaxAmount);
 
         $result = $zbApi->order($currency, $sellPrice, $sellAmount, 0);
         if ($result['code'] == 1000) {
             $sellOrder++;
+            $times = 0;
             showLog('委卖：' . $sellPrice . '/' . $sellAmount);
         } else {
             dump('委卖：' . $result['message'] . '(' . $sellPrice . '/' . $sellAmount . ')');
