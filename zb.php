@@ -4,11 +4,13 @@
  * @author: 夜雨 yeyupl@qq.com
  */
 
+date_default_timezone_set('PRC');
+set_time_limit(0);
+error_reporting(E_ALL ^ E_NOTICE ^ E_DEPRECATED ^ E_WARNING);
+
 require_once __DIR__ . '/vendor/autoload.php';
 
 require_once __DIR__ . '/function.php';
-
-date_default_timezone_set('PRC');
 
 $accessKey = '***';
 $secretKey = '***';
@@ -51,9 +53,10 @@ while (true) {
     //均价
     $avgPrice = array_sum($priceHistory) / count($priceHistory);
 
-    $targetMaxAmount = round($orderMaxAmount / $price);
+    $standardMaxAmount = min(100, $orderMaxAmount);
+    $targetMaxAmount = min(10, round($orderMaxAmount / $price));
 
-    if ($standardAmount < $orderMaxAmount && $targetAmount < $targetMaxAmount) {
+    if ($standardAmount < $standardMaxAmount && $targetAmount < $targetMaxAmount) {
         // 超过指定次数 撤消委单 重新挂
         if ($times >= $maxTimes) {
             //查询委托单
@@ -91,7 +94,7 @@ while (true) {
     //市场深度
     $depth = $zbApi->depth($currency);
 
-    if ($standardAmount > $orderMaxAmount && $buyOrder < $maxOrder) {
+    if ($standardAmount > $standardMaxAmount && $buyOrder < $maxOrder) {
         // 如果还有qc 挂买单 现价折价1% 或者第5档加0.0001 取最大的
 
         //一直买不到 可能是单边行情 为防止一直不成交 挂单档次加上撤单次数因子
@@ -102,7 +105,7 @@ while (true) {
             $bid = max(0, 4 - $cancelBuyTimes);
         }
         $buyPrice = max(round($price * 0.99, 3), $depth['bids'][$bid][0] + 0.0001);
-        $buyAmount = floor($orderMaxAmount / $buyPrice);
+        $buyAmount = floor(min($standardAmount, $standardMaxAmount) / $buyPrice);
 
         $result = $zbApi->order($currency, $buyPrice, $buyAmount, 1);
         if ($result['code'] == 1000) {
