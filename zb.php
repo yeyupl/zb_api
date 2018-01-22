@@ -24,11 +24,11 @@ $targetCurrency = 'bts';  //目标币
 $sleepTime = 10; //每次循环秒数
 
 $times = 0; //空操作次数
-$maxTimes = 18;  //最大空操作次数
+$maxTimes = 12;  //最大空操作次数
 $cancelBuyTimes = 0;  //买单撤单次数
 $cancelSellTimes = 0; //卖单撤单次数
 
-$orderMaxAmount = 1000; //每次下单金额
+$orderMaxAmount = 3000; //每次下单金额
 
 $maxOrder = 2; //最大挂单数
 $buyOrder = 0;  //委买次数
