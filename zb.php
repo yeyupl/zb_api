@@ -13,7 +13,7 @@ date_default_timezone_set('PRC');
 $accessKey = '***';
 $secretKey = '***';
 
-$zbApi = new ZB\zbApi($accessKey, $secretKey);
+$zbApi = new ZB\ZBApi($accessKey, $secretKey);
 
 
 $currency = 'bts_qc'; //交易对
@@ -28,7 +28,7 @@ $maxTimes = 180;  //最大空操作次数
 $cancelBuyTimes = 0;  //买单撤单次数
 $cancelSellTimes = 0; //卖单撤单次数
 
-$orderMaxAmount = 1000; //每次下单金额
+$orderMaxAmount = 500; //每次下单金额
 
 $maxOrder = 2; //最大挂单数
 $buyOrder = 0;  //委买次数

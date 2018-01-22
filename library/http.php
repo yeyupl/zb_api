@@ -9,7 +9,7 @@ namespace ZB;
 use GuzzleHttp\Client;
 use GuzzleHttp\Cookie\FileCookieJar;
 
-class http {
+class Http {
 
     public $cookieFile;
     public $client;

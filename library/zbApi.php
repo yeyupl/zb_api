@@ -6,7 +6,7 @@
 
 namespace ZB;
 
-class zbApi {
+class ZBApi {
 
     private $accessKey = '';
     private $secretKey = '';
@@ -18,7 +18,7 @@ class zbApi {
     public function __construct($accessKey, $secretKey) {
         $this->accessKey = $accessKey;
         $this->secretKey = $secretKey;
-        $this->http = new http();
+        $this->http = new Http();
     }
 
     /** 参数签名
