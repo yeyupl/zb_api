@@ -10,8 +10,8 @@ require_once __DIR__ . '/function.php';
 
 date_default_timezone_set('PRC');
 
-$accessKey = '***';
-$secretKey = '***';
+$accessKey = 'ff1e221e-d009-4b60-b39d-e87087d0600a';
+$secretKey = '19b23368-3594-494b-be1c-7fabd7db8502';
 
 $zbApi = new ZB\ZBApi($accessKey, $secretKey);
 
@@ -82,7 +82,7 @@ while (true) {
             sleep(3);
         } else {
             $times++;
-            //showLog('无操作');
+            showLog('无操作');
             sleep($sleepTime);
         }
         continue;
