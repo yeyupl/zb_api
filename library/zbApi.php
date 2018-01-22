@@ -8,14 +8,16 @@ namespace ZB;
 
 class zbApi {
 
-    private $accessKey = '***';
-    private $secretKey = '***';
+    private $accessKey = '';
+    private $secretKey = '';
     private $hqUrl = 'http://api.zb.com/data/v1/';
     private $tradeUrl = 'https://trade.zb.com/api/';
 
     private $http;
 
-    public function __construct() {
+    public function __construct($accessKey, $secretKey) {
+        $this->accessKey = $accessKey;
+        $this->secretKey = $secretKey;
         $this->http = new http();
     }
 
@@ -193,7 +195,8 @@ class zbApi {
      */
     public function getAvailableAmount($coin) {
         $coin = strtoupper($coin);
-        if ($result = $this->getAccountInfo()) {
+        $result = $this->getAccountInfo();
+        if (!isset($result['code'])) {
             foreach ($result['result']['coins'] as $v) {
                 if ($v['enName'] == $coin) {
                     return $v['available'];

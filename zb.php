@@ -6,64 +6,23 @@
 
 require_once __DIR__ . '/vendor/autoload.php';
 
-/**
- * 是否运行在CLI模式下
- * @return bool
- */
-function isCli() {
-    return php_sapi_name() == 'cli';
-}
+require_once __DIR__ . '/function.php';
 
-/**
- * 调试输出
- * @param $val
- */
-function dump($val) {
-    if (is_array($val) || is_object($val)) {
-        if (!isCli()) {
-            echo '<pre>';
-        }
-        print_r($val);
-        if (!isCli()) {
-            echo '</pre>';
-        }
-    } elseif (is_bool($val)) {
-        echo $val ? 'true' : 'false';
-        echo PHP_EOL;
-    } else {
-        if ($val) {
-            $val .= PHP_EOL;
-            echo isCli() ? $val : nl2br($val);
-        }
-    }
-}
+$accessKey = '***';
+$secretKey = '***';
 
-function showLog($msg) {
-    dump('[' . date('Y-m-d H:i:s') . ']' . $msg);
-}
+$zbApi = new ZB\zbApi($accessKey,$secretKey);
 
-$zbApi = new ZB\zbApi();
-
-//dump($zbApi->markets());
-
-//dump($zbApi->ticker('bts_qc'));
-
-//dump($zbApi->depth('bts_qc'));
-
-//dump($zbApi->getAccountInfo());
-
-//dump($zbApi->getAvailableAmount('qc'));
-//dump($zbApi->getAvailableAmount('bts'));
 
 $currency = 'bts_qc'; //交易对
 
 $standardCurrency = 'qc'; //基准币
 $targetCurrency = 'bts';  //目标币
 
-$sleepTime = 30; //30秒一次循环
+$sleepTime = 20; //30秒一次循环
 
 $times = 0; //空操作次数
-$maxTimes = 20;  //最大空操作次数
+$maxTimes = 15;  //最大空操作次数
 
 $orderMaxAmount = 1000; //每次下单金额
 
@@ -84,7 +43,7 @@ while (true) {
     $targetMaxAmount = round($orderMaxAmount / $price);
 
     if ($standardAmount < $orderMaxAmount && $targetAmount < $targetMaxAmount) {
-        // 超过指定时间(3分钟) 撤消委单 重新挂
+        // 超过指定次数 撤消委单 重新挂
         if ($times >= $maxTimes) {
             //查询委托单
             $orders = $zbApi->getOrders($currency);
@@ -102,11 +61,12 @@ while (true) {
             } else {
                 showLog('没有委单');
             }
+            sleep(5);
         } else {
             $times++;
-            //showLog('无操作');
+            showLog('无操作');
+            sleep($sleepTime);
         }
-        sleep($sleepTime);
         continue;
     }
 
@@ -114,7 +74,7 @@ while (true) {
     $depth = $zbApi->depth($currency);
 
     if ($standardAmount > $orderMaxAmount && $buyOrder < $maxOrder) {
-        // 如果还有QC 挂买单 现价折价1% 或者第5档加0.0001 取最大的
+        // 如果还有qc 挂买单 现价折价1% 或者第5档加0.0001 取最大的
         $buyPrice = max(round($price * 0.99, 3), $depth['bids'][4][0] + 0.0001);
         $buyAmount = floor($orderMaxAmount / $buyPrice);
 
