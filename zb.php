@@ -26,15 +26,11 @@ $targetCurrency = 'bts';  //目标币
 $sleepTime = 10; //每次循环秒数
 
 $times = 0; //空操作次数
-$maxTimes = 12;  //最大空操作次数
+$maxTimes = 18;  //最大空操作次数
 $cancelBuyTimes = 0;  //买单撤单次数
 $cancelSellTimes = 0; //卖单撤单次数
 
-$orderMaxAmount = 3000; //每次下单金额
-
-$maxOrder = 2; //最大挂单数
-$buyOrder = 0;  //委买次数
-$sellOrder = 0; //委卖次数
+$orderMinAmount = 100; //每次下单金额
 
 $priceHistory = [];  //一个周期内的历史价格
 
@@ -53,10 +49,9 @@ while (true) {
     //均价
     $avgPrice = array_sum($priceHistory) / count($priceHistory);
 
-    $standardMaxAmount = min(100, $orderMaxAmount);
-    $targetMaxAmount = min(10, round($orderMaxAmount / $price));
+    $targetMinAmount = round($orderMinAmount / $price);
 
-    if ($standardAmount < $standardMaxAmount && $targetAmount < $targetMaxAmount) {
+    if ($standardAmount < $orderMinAmount && $targetAmount < $targetMinAmount) {
         // 超过指定次数 撤消委单 重新挂
         if ($times >= $maxTimes) {
             //查询委托单
@@ -79,8 +74,6 @@ while (true) {
             } else {
                 showLog('没有委单');
             }
-            $sellOrder = 0;
-            $buyOrder = 0;
             $times = 0;
             sleep(3);
         } else {
@@ -94,9 +87,8 @@ while (true) {
     //市场深度
     $depth = $zbApi->depth($currency);
 
-    if ($standardAmount > $standardMaxAmount && $buyOrder < $maxOrder) {
-        // 如果还有qc 挂买单 现价折价1% 或者第5档加0.0001 取最大的
-
+    // 如果还有qc 挂买单 现价折价1% 或者第5档加0.0001 取最大的
+    if ($standardAmount > $orderMinAmount) {
         //一直买不到 可能是单边行情 为防止一直不成交 挂单档次加上撤单次数因子
         if ($price > $avgPrice) {
             //上涨行情 加速买入
@@ -109,7 +101,6 @@ while (true) {
 
         $result = $zbApi->order($currency, $buyPrice, $buyAmount, 1);
         if ($result['code'] == 1000) {
-            $buyOrder++;
             $times = 0;
             $cancelBuyTimes = 0;
             showLog('委买：' . $buyPrice . '/' . $buyAmount);
@@ -117,9 +108,9 @@ while (true) {
             dump('委买：' . $result['message'] . '(' . $buyPrice . '/' . $buyAmount . ')');
         }
     }
-    if ($targetAmount > $targetMaxAmount && $sellOrder < $maxOrder) {
-        // 如果还有bts 挂卖单 现价溢价1% 或者 第5档减少0.0001 取最小
 
+    // 如果还有bts 挂卖单 现价溢价1% 或者 第5档减少0.0001 取最小
+    if ($targetAmount > $targetMinAmount) {
         //一直卖不出 可能是单边行情 为防止一直不成交 挂单档次加上撤单次数因子
         if ($price >= $avgPrice) {
             $ask = 0;
@@ -133,7 +124,6 @@ while (true) {
 
         $result = $zbApi->order($currency, $sellPrice, $sellAmount, 0);
         if ($result['code'] == 1000) {
-            $sellOrder++;
             $times = 0;
             showLog('委卖：' . $sellPrice . '/' . $sellAmount);
         } else {
