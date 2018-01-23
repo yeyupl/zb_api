@@ -108,15 +108,20 @@ while (true) {
             //一直买不到 可能是单边行情 为防止一直不成交 挂单档次加上撤单次数因子
             if ($price > $avgPrice) {
                 //上涨行情 加速买入
-                if ($lastSellPrice && $price < $lastSellPrice * 0.995) {
-                    //如果当前价格 小于上次卖出价0.5%以上 应该立即买入
+                if ($lastSellPrice && ($price < $lastSellPrice * 0.995 || $price > $lastSellPrice * 1.015)) {
+                    //如果当前价格 小于上次卖出价0.5%以上立即买入 或者大于1.5% 停止追高
                     $bid = 0;
                 } else {
                     //减少挂单档次
                     $bid = max(0, 4 - $cancelBuyTimes);
                 }
             } else {
-                $bid = 4;
+                if ($lastSellPrice && $price < $lastSellPrice * 0.95) {
+                    // 跌5% 抄底
+                    $bid = 0;
+                } else {
+                    $bid = 4;
+                }
             }
             $buyPrice = max(round($price * 0.99, 3), $depth['bids'][$bid][0] + 0.0001);
             $buyAmount = floor($standardAmount / $buyPrice);
@@ -134,14 +139,19 @@ while (true) {
             //有足够bts 挂卖单 现价溢价1% 或者 第5档减少0.0001 取最小
             //一直卖不出 可能是单边行情 为防止一直不成交 挂单档次加上撤单次数因子
             if ($price >= $avgPrice) {
-                $ask = 0;
-            } else {
-                //下跌行情 加速卖出
-                if ($lastBuyPrice && $price > $lastBuyPrice * 1.005) {
-                    //如果当前价格 小于上次买进价0.5%以上 应该立即卖出
+                if ($lastBuyPrice && $price > $lastBuyPrice * 1.05) {
+                    // 5%收益 止盈
                     $ask = 4;
                 } else {
-                    $ask = max(0, $cancelSellTimes);
+                    $ask = 0;
+                }
+            } else {
+                //下跌行情 加速卖出
+                if ($lastBuyPrice && ($price > $lastBuyPrice * 1.005 || $price > $lastBuyPrice * 0.99)) {
+                    //如果当前价格 大于上次买进价0.5%以上卖出了结 或者低于1%止损
+                    $ask = 4;
+                } else {
+                    $ask = max(0, $cancelSellTimes - 1);
                 }
             }
 
