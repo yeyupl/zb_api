@@ -12,8 +12,8 @@ require_once __DIR__ . '/vendor/autoload.php';
 
 require_once __DIR__ . '/function.php';
 
-$accessKey = '63a0f168-6f18-4d55-9443-978829e1a5ac';
-$secretKey = '8ab95642-c841-456d-8dd3-170b45a589c6';
+$accessKey = '***';
+$secretKey = '***';
 
 $zbApi = new ZB\ZBApi($accessKey, $secretKey);
 
@@ -40,6 +40,9 @@ $orderMinAmount = 100; //每次最小下单金额
 
 $priceHistory = [];  //一个周期内的历史价格
 
+$lastBuyPrice = 0;
+$lastSellPrice = 0;
+
 while (true) {
     //可用余额
     $standardAmount = $zbApi->getAvailableAmount($standardCurrency);
@@ -51,6 +54,9 @@ while (true) {
     $price = $ticker['ticker']['last'];
 
     $priceHistory[] = $price;
+
+    // 只取最近10次价格
+    $priceHistory = array_slice($priceHistory, -10);
 
     //均价
     $avgPrice = array_sum($priceHistory) / count($priceHistory);
@@ -102,7 +108,13 @@ while (true) {
             //一直买不到 可能是单边行情 为防止一直不成交 挂单档次加上撤单次数因子
             if ($price > $avgPrice) {
                 //上涨行情 加速买入
-                $bid = max(0, 4 - $cancelBuyTimes);
+                if ($lastSellPrice && $price < $lastSellPrice * 0.995) {
+                    //如果当前价格 小于上次卖出价0.5%以上 应该立即买入
+                    $bid = 0;
+                } else {
+                    //减少挂单档次
+                    $bid = max(0, 4 - $cancelBuyTimes);
+                }
             } else {
                 $bid = 4;
             }
@@ -113,6 +125,7 @@ while (true) {
             if ($result['code'] == 1000) {
                 $times = 0;
                 $cancelBuyTimes = 0;
+                $lastBuyPrice = $buyPrice;
                 showLog('委买：' . $buyPrice . '/' . $buyAmount);
             } else {
                 dump('委买：' . $result['message'] . '(' . $buyPrice . '/' . $buyAmount . ')');
@@ -124,7 +137,12 @@ while (true) {
                 $ask = 0;
             } else {
                 //下跌行情 加速卖出
-                $ask = max(0, $cancelSellTimes);
+                if ($lastBuyPrice && $price > $lastBuyPrice * 1.005) {
+                    //如果当前价格 小于上次买进价0.5%以上 应该立即卖出
+                    $ask = 4;
+                } else {
+                    $ask = max(0, $cancelSellTimes);
+                }
             }
 
             $sellPrice = min(round($price * 1.01, 3), $depth['asks'][$ask][0] - 0.0001);
@@ -133,6 +151,8 @@ while (true) {
             $result = $zbApi->order($currency, $sellPrice, $sellAmount, 0);
             if ($result['code'] == 1000) {
                 $times = 0;
+                $cancelSellTimes = 0;
+                $lastSellPrice = $sellPrice;
                 showLog('委卖：' . $sellPrice . '/' . $sellAmount);
             } else {
                 dump('委卖：' . $result['message'] . '(' . $sellPrice . '/' . $sellAmount . ')');
