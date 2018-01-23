@@ -44,6 +44,7 @@ $lastBuyPrice = 0;
 $lastSellPrice = 0;
 
 while (true) {
+
     //可用余额
     $standardAmount = $zbApi->getAvailableAmount($standardCurrency);
     $targetAmount = $zbApi->getAvailableAmount($targetCurrency);
@@ -66,28 +67,28 @@ while (true) {
     //未完成的委单
     $orders = $zbApi->getUnfinishedOrdersIgnoreTradeType($currency);
 
+    //市场深度
+    $depth = $zbApi->depth($currency);
+
     if ($standardAmount < $orderMinAmount && $targetAmount < $targetMinAmount) {
         // 超过指定次数 撤消委单 重新挂
-        if ($dummyTimes >= $maxDummyTimes) {
-            if (!isset($orders['code'])) {
-                $cancelOrder = 0;
-                foreach ($orders as $order) {
-                    //取消订单  0未成交 3部分成交
-                    if (in_array($order['status'], [0, 3])) {
-                        $zbApi->cancelOrder($currency, $order['id']);
-                        $cancelOrder++;
-                        if ($order['type'] == 1) {
-                            $cancelBuyTimes++;
-                        } else {
-                            $cancelSellTimes++;
-                        }
+        if ($dummyTimes >= $maxDummyTimes && !isset($orders['code'])) {
+            $cancelOrder = 0;
+            foreach ($orders as $order) {
+                //取消订单  0未成交 3部分成交 并且挂单价不在5档之内
+                $key = $order['type'] == 1 ? 'bids' : 'asks';
+                if (in_array($order['status'], [0, 3]) && !in_array($order['price'], array_column($depth[$key], 0))) {
+                    $zbApi->cancelOrder($currency, $order['id']);
+                    $cancelOrder++;
+                    if ($order['type'] == 1) {
+                        $cancelBuyTimes++;
+                    } else {
+                        $cancelSellTimes++;
                     }
                 }
-                showLog('超时撤单：' . $cancelOrder);
-            } else {
-                showLog('没有委单');
             }
             $dummyTimes = 0;
+            showLog('超时撤单：' . $cancelOrder);
             sleep(3);
         } else {
             $dummyTimes++;
@@ -100,17 +101,17 @@ while (true) {
     //如果存在未完成委单 不继续挂单了
     if (isset($orders['code']) || !$orders) {
 
-        //市场深度
-        $depth = $zbApi->depth($currency);
-
         // 有足够qc 挂买单 现价折价1% 或者第5档加0.0001 取最大的
         if ($standardAmount > $orderMinAmount) {
             //一直买不到 可能是单边行情 为防止一直不成交 挂单档次加上撤单次数因子
             if ($price > $avgPrice) {
                 //上涨行情 加速买入
-                if ($lastSellPrice && ($price < $lastSellPrice * 0.995 || $price > $lastSellPrice * 1.015)) {
-                    //如果当前价格 小于上次卖出价0.5%以上立即买入 或者大于1.5% 停止追高
+                if ($lastSellPrice && $price < $lastSellPrice * 0.995) {
+                    //如果当前价格 小于上次卖出价0.5%以上立即买入
                     $bid = 0;
+                } elseif ($lastSellPrice && $price > $lastSellPrice * 1.015) {
+                    // 或者大于1.5% 不追高
+                    $bid = 4;
                 } else {
                     //减少挂单档次
                     $bid = max(0, 4 - $cancelBuyTimes);
@@ -147,7 +148,7 @@ while (true) {
                 }
             } else {
                 //下跌行情 加速卖出
-                if ($lastBuyPrice && ($price > $lastBuyPrice * 1.005 || $price > $lastBuyPrice * 0.99)) {
+                if ($lastBuyPrice && ($price > $lastBuyPrice * 1.005 || $price < $lastBuyPrice * 0.99)) {
                     //如果当前价格 大于上次买进价0.5%以上卖出了结 或者低于1%止损
                     $ask = 4;
                 } else {
