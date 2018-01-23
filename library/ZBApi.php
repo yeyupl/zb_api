@@ -162,7 +162,7 @@ class ZBApi {
      * @param int $tradeType
      * @return array|mixed|string
      */
-    public function getOrdersNew($currency, $pageIndex = 1, $pageSize = 1, $tradeType = 1) {
+    public function getOrdersNew($currency, $pageIndex = 1, $pageSize = 100, $tradeType = 1) {
         return $this->tradeRequest('getOrdersNew', ['currency' => $currency, 'pageIndex' => $pageIndex, 'pageSize' => $pageSize, 'tradeType' => $tradeType]);
     }
 
