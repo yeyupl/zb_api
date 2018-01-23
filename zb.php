@@ -12,8 +12,8 @@ require_once __DIR__ . '/vendor/autoload.php';
 
 require_once __DIR__ . '/function.php';
 
-$accessKey = '***';
-$secretKey = '***';
+$accessKey = '63a0f168-6f18-4d55-9443-978829e1a5ac';
+$secretKey = '8ab95642-c841-456d-8dd3-170b45a589c6';
 
 $zbApi = new ZB\ZBApi($accessKey, $secretKey);
 
@@ -24,15 +24,14 @@ $standardCurrency = 'qc'; //基准币
 $targetCurrency = 'bts';  //目标币
 
 $sleepTime = 10; //每次循环秒数
-
-$times = 0; //空操作次数
-$maxDummyTimes = 18;  //最大空操作次数
-
 $hour = date('G');
 if ($hour >= 0 && $hour < 9) {
-    // 非成交活跃时间 加大撤单周期
-    $maxDummyTimes = 30;
+    // 非成交活跃时间 加长检测周期
+    $sleepTime = 20;
 }
+
+$dummyTimes = 0; //空操作次数
+$maxDummyTimes = 18;  //最大空操作次数
 
 $cancelBuyTimes = 0;  //买单撤单次数
 $cancelSellTimes = 0; //卖单撤单次数
@@ -63,7 +62,7 @@ while (true) {
 
     if ($standardAmount < $orderMinAmount && $targetAmount < $targetMinAmount) {
         // 超过指定次数 撤消委单 重新挂
-        if ($times >= $maxDummyTimes) {
+        if ($dummyTimes >= $maxDummyTimes) {
             if (!isset($orders['code'])) {
                 $cancelOrder = 0;
                 foreach ($orders as $order) {
@@ -82,10 +81,10 @@ while (true) {
             } else {
                 showLog('没有委单');
             }
-            $times = 0;
+            $dummyTimes = 0;
             sleep(3);
         } else {
-            $times++;
+            $dummyTimes++;
             showLog('无操作');
             sleep($sleepTime);
         }
